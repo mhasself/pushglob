@@ -4,9 +4,11 @@ import os
 import yaml
 import subprocess as sp
 
+
 __all__ = ['SyncDb']
 
-GLOBUS = '/home/mfh2/.local/bin/globus' #globus'
+DEFAULT_GLOBUS_BIN = 'globus'
+
 
 def get_output(args, stdin=None):
     P = sp.Popen(args, stdout=sp.PIPE, stderr=sp.PIPE, stdin=sp.PIPE)
@@ -51,6 +53,7 @@ class SyncDb:
         else:
             conn = self._create_db(db_file)
         self.conn = conn
+        self.globus_bin = config.get('globus_bin', DEFAULT_GLOBUS_BIN)
 
     def _create_db(self, db_file):
         conn = sqlite3.connect(db_file)
@@ -198,7 +201,7 @@ class SyncDb:
                                 file_pairs=None):
         src_id = self.config['globus_endpoints'][src_node]
         dest_id = self.config['globus_endpoints'][dest_node]
-        args = [GLOBUS, '-F', 'json', 'transfer']
+        args = [self.globus_bin, '-F', 'json', 'transfer']
 
         stdin_text = ''
         if file_pairs is None:
@@ -216,7 +219,7 @@ class SyncDb:
         return json.loads(out)
 
     def globus_check_transfer(self, task_id=None, _dumpfile=None):
-        code, out, err = get_output([GLOBUS, 'api', 'transfer', 'GET', f'/task/{task_id}'])
+        code, out, err = get_output([self.globus_bin, 'api', 'transfer', 'GET', f'/task/{task_id}'])
         if code != 0:
             raise RuntimeError(f'Error looking up task_id={task_id}; '
                                f'exit={code}, out={out}, err={err}')
@@ -225,3 +228,16 @@ class SyncDb:
         info = json.loads(out)
         return info
 
+    def globus_test_endpoint(self, endpoint_name):
+        endpoint_id = self.config['globus_endpoints'][endpoint_name]
+        code, out, err = get_output([self.globus_bin, 'ls', f'{endpoint_id}:', '-F', 'json'])
+        report = {
+            'ok': (code==0),
+            'exit_code': code,
+        }
+        if code == 0:
+            info = json.loads(out)
+            report['file_count'] = len(info['DATA'])
+        else:
+            report['error_text'] = err
+        return report
