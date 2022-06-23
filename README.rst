@@ -4,7 +4,9 @@ pushglob
 
 pushglob wraps the Globus CLI and maintains a database of files on a
 local system.  It assists with pushing updates out to other Globus
-endpoints.  It currently
+endpoints.  It currently only works in a mode where data are generated
+on one system and then pushed out to one or more satellite systems.
+There is no way to track changes back from the satellite systems.
 
 Installation
 ============
