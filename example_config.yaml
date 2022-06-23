@@ -1,0 +1,12 @@
+db_file:        ~/.pushglob.sqlite
+local_endpoint: tigress
+
+globus_endpoints:
+  tigress: 'a98234780-blah-blah-etcetcetc'
+  nersc:   'a9bef7890-blah-blah-etcetcetc'
+
+spaces:
+  test_space:
+    tigress: '/path/on/tigress/my_test_space'
+    nersc:   '/path/on/nersc/my_test_space'
+
